@@ -2,6 +2,7 @@ package app.netlify.sachin1008.service.impl;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.function.Function;
 
 
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import app.netlify.sachin1008.dto.JWTAuthenticationResponse;
+import app.netlify.sachin1008.dto.RefreshTokenDto;
 import app.netlify.sachin1008.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,7 +25,7 @@ import io.jsonwebtoken.security.Keys;
 public class JwtServiceImpl implements JwtService{
 
 	
-	@Value("$JWT_SECURITY_KEY")
+	@Value("${JWT_SECURITY_KEY}")
 	private String Stringkey;
 	
 	public String genrateToken(UserDetails userdetails) {
@@ -31,6 +34,13 @@ public class JwtServiceImpl implements JwtService{
 				.setIssuedAt(new Date(System.currentTimeMillis())).
 				setExpiration(new Date(System.currentTimeMillis()+1000*60*24)).signWith(getSignInKey(),SignatureAlgorithm.HS256).compact();
 	}
+	public String genrateRefreshToken(HashMap<String, Object> extraClaims,UserDetails userdetails) {
+		return Jwts.builder().setClaims(extraClaims)
+				.setSubject(userdetails.getUsername())
+				.setIssuedAt(new Date(System.currentTimeMillis())).
+				setExpiration(new Date(System.currentTimeMillis()+1000L * 60 * 60 * 24 * 7)).signWith(getSignInKey(),SignatureAlgorithm.HS256).compact();
+	}
+	
 	public String ExtractUserName(String token) {
 		return extractClaims(token, Claims::getSubject);
 	}
@@ -55,4 +65,5 @@ public class JwtServiceImpl implements JwtService{
 	private boolean isTokenExpired(String token) {
 		return extractClaims(token, Claims::getExpiration).before(new Date());
 	}
+	
 }

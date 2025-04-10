@@ -11,13 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.netlify.sachin1008.dto.JWTAuthenticationResponse;
 import app.netlify.sachin1008.dto.Message;
+import app.netlify.sachin1008.dto.RefreshTokenDto;
+import app.netlify.sachin1008.dto.SiginDto;
 import app.netlify.sachin1008.dto.SignupDto;
 import app.netlify.sachin1008.entity.User;
 import app.netlify.sachin1008.service.AuthenticationService;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/auth/")
 public class AuthenticationController {
 
 	
@@ -74,6 +77,53 @@ public class AuthenticationController {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 			}
 		}
+	}
+	
+	
+	@PostMapping("signin")
+	private ResponseEntity<Message> sigin(@RequestBody SiginDto userCredential){
+		Message message=new Message();
+		
+		if(userCredential.getEmail().isEmpty()||userCredential.getEmail().isBlank()) {
+			message.setSuccess(false);
+			message.setMessage(List.of("email can't be null"));
+			message.setData(userCredential);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);	
+		}
+		if(userCredential.getPassword().isEmpty()||userCredential.getPassword().isBlank()) {
+			message.setSuccess(false);
+			message.setMessage(List.of("password can't be null"));
+			message.setData(userCredential);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);	
+		}else {
+			message.setSuccess(true);
+			JWTAuthenticationResponse authenticationResponse= authenticationService.signin(userCredential);
+			message.setMessage(List.of(authenticationResponse.getToken(),authenticationResponse.getRefreshToken()));
+			message.setData(userCredential);
+			return ResponseEntity.status(HttpStatus.ACCEPTED).body(message);
+		}
+		
+		
+		
+	}
+	
+	@PostMapping("refreshToken")
+	private ResponseEntity<Message> refreshToken(@RequestBody RefreshTokenDto rtoken){
+		Message message=new Message();
+		
+		if(rtoken.getToken().isEmpty()||rtoken.getToken().isBlank()) {
+			message.setSuccess(false);
+			message.setMessage(List.of("token can't be null"));
+			message.setData(rtoken);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);	
+		}else {
+			message.setSuccess(true);
+			JWTAuthenticationResponse authenticationResponse= authenticationService.RefreshToken(rtoken);
+			message.setMessage(List.of(authenticationResponse.getToken(),authenticationResponse.getRefreshToken()));
+			message.setData(rtoken);
+			return ResponseEntity.status(HttpStatus.ACCEPTED).body(message);
+		}
+		
 	}
 	
 	

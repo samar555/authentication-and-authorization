@@ -36,14 +36,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final String jwt;
 	  final String userEmail;
 	  if(StringUtil.isNullOrEmpty(authHeader)|| !authHeader.startsWith("Bearer")) {
+		
 		  filterChain.doFilter(request, response);
 		  return;
 	  }
+	  System.out.println("bearer run");
 		jwt=authHeader.substring(7);
 		userEmail=jwtService.ExtractUserName(jwt);
-		if(userEmail.isEmpty()&& SecurityContextHolder.getContext().getAuthentication()==null) {
+		 System.out.println(userEmail);
+		if(!userEmail.isEmpty()&& SecurityContextHolder.getContext().getAuthentication()==null) {
 			UserDetails userdetail=userservice.userDetailService().loadUserByUsername(userEmail);
-		if(jwtService.tokenValidate(userEmail, userdetail)) {
+		if(jwtService.tokenValidate(jwt, userdetail)) {
 			SecurityContext context=SecurityContextHolder.createEmptyContext();
 			
 			UsernamePasswordAuthenticationToken token=new UsernamePasswordAuthenticationToken(userdetail, null,userdetail.getAuthorities());
